@@ -1,47 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Understated, low-contrast, and desaturated dark theme for Phantom.
+/// Motivation-focused, energetic dark theme for Phantom.
 ///
-/// Designed to feel calm and quiet, with energy concentrated in deliberate
-/// spots: key numbers (data contrast), primary CTAs (warm copper), and subtle gradients.
+/// Combines a deep charcoal-teal base, highly saturated burnt-orange accent
+/// for actions and metrics, and a clean teal secondary accent for progress bars.
 class AppTheme {
   AppTheme._();
 
   // ─── Color Palette ───────────────────────────────────────────────────
 
-  static const Color _scaffoldBackground = Color(0xFF0A0A0B); // Background
-  static const Color _surface = Color(0xFF131314);            // Surface Card (base gradient bottom)
-  static const Color _surfaceVariant = Color(0xFF19191B);     // Elevated Layer (base gradient top)
-  static const Color _border = Color(0xFF232325);             // Subtle Seam Border
+  static const Color _scaffoldBackground = Color(0xFF0B0F10); // Background
+  static const Color _surface = Color(0xFF141A1B);            // Surface Card (base gradient bottom)
+  static const Color _surfaceVariant = Color(0xFF1B2224);     // Elevated Layer (base gradient top)
+  static const Color _border = Color(0xFF263033);             // Crisp Border Seam
   
-  static const Color _primary = Color(0xFFC77B4E);            // Saturated Copper Accent
-  static const Color _primaryContainer = Color(0xFF2D1E16);   // Deep Copper Container
-  static const Color _onPrimary = Color(0xFFF5F5F0);          // Contrast text on primary
+  static const Color _primary = Color(0xFFFF7A45);            // Warm Saturated Burnt-Orange Accent
+  static const Color _primaryContainer = Color(0xFF3D190D);   // Deep Burnt-Orange Container
+  static const Color _onPrimary = Color(0xFF0B0F10);          // Dark text on energetic accent
   
-  static const Color _secondary = Color(0xFF7A7A7D);          // Text secondary
-  static const Color _onSurface = Color(0xFFD4D4D6);          // Text primary (Off-white)
-  static const Color _onSurfaceVariant = Color(0xFF7A7A7D);   // Text secondary
-  static const Color _error = Color(0xFF7A6363);              // Falling off / Error
+  static const Color _secondary = Color(0xFF2DD4BF);          // Teal Secondary Accent (for progress)
+  static const Color _onSurface = Color(0xFFF4F4F2);          // Primary text
+  static const Color _onSurfaceVariant = Color(0xFF8B9494);   // Secondary text
+  static const Color _error = Color(0xFFEF4444);              // Full-strength red for Falling Off
 
   // ─── Extended Text/Data Colors ───────────────────────────────────────
 
-  /// Crisp near-white for high-contrast data numbers
-  static const Color dataWhite = Color(0xFFF5F5F0);
+  /// Energetic Burnt-Orange for high-contrast numeric metrics
+  static const Color dataAccent = Color(0xFFFF7A45);
+  static const Color dataWhite = Color(0xFFFF7A45);
 
-  /// Very muted tertiary text color (supporting info, dates, times)
-  static const Color textTertiary = Color(0xFF4A4A4D);
+  /// Very muted tertiary text color
+  static const Color textTertiary = Color(0xFF565E5E);
 
-  // ─── Pacing Status Colors (Desaturated hint of hue) ──────────────────
+  // ─── Pacing Status Colors (Real Earned Signals) ──────────────────────
 
-  /// Near-grayscale muted green
-  static const Color onTrack = Color(0xFF6B7A6D);
+  /// Amber Gold — On Track
+  static const Color onTrack = Color(0xFFF0B429);
 
-  /// Near-grayscale muted gold/ochre
-  static const Color behind = Color(0xFF8A7D63);
+  /// Soft Orange-Red — Behind
+  static const Color behind = Color(0xFFFF9466);
 
-  /// Near-grayscale muted coral/red
-  static const Color fallingOff = Color(0xFF7A6363);
+  /// Full-strength Red — Falling Off
+  static const Color fallingOff = Color(0xFFEF4444);
 
   /// Returns the appropriate status color.
   static Color statusColor(String status) {
@@ -55,7 +56,7 @@ class AppTheme {
       case 'falling off':
         return fallingOff;
       default:
-        return _secondary;
+        return _onSurfaceVariant;
     }
   }
 
@@ -79,10 +80,10 @@ class AppTheme {
 
   /// Close-in-value muted tones that feel like one quiet family
   static const List<Color> domainPalette = [
-    Color(0xFF6B7278), // Quiet Slate
-    Color(0xFF6B7A6D), // Quiet Green
+    Color(0xFF6E85A6), // Quiet Blue
+    Color(0xFF7C9A7E), // Quiet Green
     Color(0xFF8A7A6D), // Quiet Taupe
-    Color(0xFF786B7A), // Quiet Purple
+    Color(0xFF8B7BA6), // Quiet Heather
   ];
 
   /// Returns a consistent color for a given domain string based on its hash.
@@ -114,8 +115,8 @@ class AppTheme {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0xFF19191B), // Faintly lighter top
-          Color(0xFF131314), // Faintly darker bottom
+          Color(0xFF1B2224), // Faintly lighter top
+          Color(0xFF141A1B), // Faintly darker bottom
         ],
       ),
       borderRadius: BorderRadius.circular(cardRadius),
@@ -129,55 +130,55 @@ class AppTheme {
     return TextTheme(
       displayLarge: GoogleFonts.inter(
         fontSize: 56,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         letterSpacing: -1.0,
-        color: dataWhite,
+        color: dataAccent,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       displayMedium: GoogleFonts.inter(
         fontSize: 44,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         letterSpacing: -0.5,
-        color: dataWhite,
+        color: dataAccent,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       displaySmall: GoogleFonts.inter(
         fontSize: 36,
-        fontWeight: FontWeight.w700,
-        color: dataWhite,
+        fontWeight: FontWeight.w800,
+        color: dataAccent,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       headlineLarge: GoogleFonts.inter(
         fontSize: 30,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
         color: _onSurface,
       ),
       headlineMedium: GoogleFonts.inter(
         fontSize: 24,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
         color: _onSurface,
       ),
       headlineSmall: GoogleFonts.inter(
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: _onSurface,
       ),
       titleLarge: GoogleFonts.inter(
         fontSize: 18,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: _onSurface,
       ),
       titleMedium: GoogleFonts.inter(
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         letterSpacing: 0.1,
         color: _onSurface,
       ),
       titleSmall: GoogleFonts.inter(
         fontSize: 12,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         letterSpacing: 0.1,
         color: _onSurface,
       ),
@@ -316,7 +317,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: _primary, // Accent CTA (Warm copper)
-          foregroundColor: _scaffoldBackground,
+          foregroundColor: _onPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(
@@ -332,7 +333,7 @@ class AppTheme {
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: _surface,
         selectedItemColor: _primary,
-        unselectedItemColor: _secondary,
+        unselectedItemColor: _onSurfaceVariant,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         showUnselectedLabels: true,

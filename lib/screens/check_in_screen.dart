@@ -7,6 +7,7 @@ import 'package:phantom/providers/check_in_provider.dart';
 import 'package:phantom/providers/goal_provider.dart';
 import 'package:phantom/providers/practice_provider.dart';
 import 'package:phantom/utils/constants.dart';
+import 'package:phantom/theme/app_theme.dart';
 
 /// A bottom sheet for logging a check-in against a practice.
 class CheckInSheet extends StatefulWidget {
@@ -159,15 +160,45 @@ class _CheckInSheetState extends State<CheckInSheet> {
         border: Border.all(color: theme.colorScheme.outline, width: 1),
       ),
       padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Drag Handle
-              Center(
+      child: _isSuccess
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 32),
+                AnimatedScale(
+                  scale: _isSuccess ? 1.0 : 0.5,
+                  duration: const Duration(milliseconds: 450),
+                  curve: Curves.easeOutBack,
+                  child: AnimatedOpacity(
+                    opacity: _isSuccess ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: const Icon(
+                      Icons.check_circle_outline,
+                      size: 48,
+                      color: AppTheme.onTrack,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Check-in logged',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            )
+          : Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag Handle
+                    Center(
                 child: Container(
                   width: 36,
                   height: 4,
