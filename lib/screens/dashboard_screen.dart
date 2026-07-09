@@ -202,9 +202,8 @@ class DashboardScreen extends StatelessWidget {
                 separatorBuilder: (context, index) => const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final item = items[index];
-                  final goal = item.goal;
+                  final goal = goalProvider.getById(item.goal.id) ?? item.goal;
                   final pace = item.pace;
-
                   // Pacing status details
                   Color statusColor;
                   String statusText;
@@ -214,19 +213,17 @@ class DashboardScreen extends StatelessWidget {
                     case TrackingStatus.onTrack:
                       statusColor = AppTheme.onTrack;
                       statusText = 'ON TRACK';
-                      statusIcon = Icons.check_circle_outline;
                       break;
                     case TrackingStatus.behind:
                       statusColor = AppTheme.behind;
                       statusText = 'BEHIND';
-                      statusIcon = Icons.error_outline;
                       break;
                     case TrackingStatus.fallingOff:
                       statusColor = AppTheme.fallingOff;
                       statusText = 'FALLING OFF';
-                      statusIcon = Icons.warning_amber_outlined;
                       break;
                   }
+                  statusIcon = AppTheme.statusIcon(statusText);
 
                   // Progress percent display
                   double displayProgress = 0.0;
@@ -247,6 +244,8 @@ class DashboardScreen extends StatelessWidget {
                       break;
                   }
 
+                  final dColor = AppTheme.domainColor(goal.domain);
+
                   return Card(
                     child: InkWell(
                       onTap: () {
@@ -256,7 +255,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -277,13 +276,22 @@ class DashboardScreen extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        goal.domain.toUpperCase(),
-                                        style: textTheme.labelSmall?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
+                                      const SizedBox(height: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: dColor.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                                          border: Border.all(color: dColor.withOpacity(0.25), width: 1),
+                                        ),
+                                        child: Text(
+                                          goal.domain.toUpperCase(),
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: dColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 9,
+                                            letterSpacing: 0.5,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -294,7 +302,7 @@ class DashboardScreen extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
                                     color: statusColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(AppTheme.controlRadius),
                                     border: Border.all(color: statusColor.withOpacity(0.3)),
                                   ),
                                   child: Row(

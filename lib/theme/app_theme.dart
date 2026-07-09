@@ -4,38 +4,42 @@ import 'package:google_fonts/google_fonts.dart';
 /// Premium, opinionated minimal dark theme for Phantom.
 ///
 /// Design system inspired by Linear, Arc, and Things 3.
-/// Features a rich graphite charcoal base, sharp geometric borders,
-/// a single strategic ice-blue accent, and custom tabular figures
-/// for numerical data tracking.
+/// Features a graphite-charcoal base, terracotta/copper accent used sparsely,
+/// and unique muted progress tracking colors.
 class AppTheme {
   AppTheme._();
 
   // ─── Color Palette ───────────────────────────────────────────────────
 
-  static const Color _scaffoldBackground = Color(0xFF0B0C0E); // Graphite Base
-  static const Color _surface = Color(0xFF121316);            // Dark Slate Card
-  static const Color _surfaceVariant = Color(0xFF18191D);     // Subtle Layering
-  static const Color _border = Color(0xFF202226);             // Crisp Border Line
+  static const Color _scaffoldBackground = Color(0xFF0E0E10); // Background
+  static const Color _surface = Color(0xFF18181B);            // Surface
+  static const Color _surfaceVariant = Color(0xFF1F1F23);     // Elevated
+  static const Color _border = Color(0xFF2A2A2E);             // Border
   
-  static const Color _primary = Color(0xFF38BDF8);            // Ice Blue Accent
-  static const Color _primaryContainer = Color(0xFF0F2D4A);   // Deep Ice Blue
-  static const Color _onPrimary = Color(0xFF0B0C0E);          // Contrast Dark On Light
+  static const Color _primary = Color(0xFFD97757);            // Accent (Terracotta/Copper)
+  static const Color _primaryContainer = Color(0xFF2C1B15);   // Deep Accent Container
+  static const Color _onPrimary = Color(0xFFEDEDEF);          // Text on Primary (Light)
   
-  static const Color _secondary = Color(0xFF475569);          // Muted Slate Gray
-  static const Color _onSurface = Color(0xFFF1F5F9);          // Off-White Primary
-  static const Color _onSurfaceVariant = Color(0xFF94A3B8);   // Muted Slate Gray
-  static const Color _error = Color(0xFFF87171);              // Soft Alert Coral
+  static const Color _secondary = Color(0xFF8E8E93);          // Text secondary
+  static const Color _onSurface = Color(0xFFEDEDEF);          // Text primary
+  static const Color _onSurfaceVariant = Color(0xFF8E8E93);   // Text secondary
+  static const Color _error = Color(0xFFB85C4E);              // Falling off / Error
 
-  // ─── Status Colors & Indicators ──────────────────────────────────────
+  // ─── Extended Text Colors ────────────────────────────────────────────
 
-  /// Emerald green — On Track
-  static const Color onTrack = Color(0xFF34D399);
+  /// Text tertiary color (for supportive, very muted notes)
+  static const Color textTertiary = Color(0xFF5C5C60);
 
-  /// Amber orange — Behind
-  static const Color behind = Color(0xFFF59E0B);
+  // ─── Pacing Status Colors ────────────────────────────────────────────
 
-  /// Soft coral red — Falling Off
-  static const Color fallingOff = Color(0xFFF87171);
+  /// Muted Sage Green — On Track
+  static const Color onTrack = Color(0xFF7C9A7E);
+
+  /// Muted Ochre Yellow — Behind
+  static const Color behind = Color(0xFFC9A64D);
+
+  /// Muted Copper Red — Falling Off
+  static const Color fallingOff = Color(0xFFB85C4E);
 
   /// Returns the appropriate status color.
   static Color statusColor(String status) {
@@ -58,23 +62,44 @@ class AppTheme {
     switch (status.toLowerCase()) {
       case 'ontrack':
       case 'on track':
-        return Icons.arrow_upward; // Upwards shape indicator
+        return Icons.arrow_upward; // Upward shape indicator
       case 'behind':
         return Icons.arrow_forward; // Horizontal steady shape
       case 'fallingoff':
       case 'falling off':
-        return Icons.arrow_downward; // Downwards alert shape
+        return Icons.arrow_downward; // Downward alert shape
       default:
         return Icons.remove;
     }
   }
 
+  // ─── Domain Palette & Hashing ────────────────────────────────────────
+
+  /// Domain tag color options
+  static const List<Color> domainPalette = [
+    Color(0xFF6E85A6), // Slate Blue
+    Color(0xFF7C9A7E), // Sage Green
+    Color(0xFFD97757), // Copper
+    Color(0xFF8B7BA6), // Heather Purple
+  ];
+
+  /// Returns a consistent color for a given domain string based on its hash.
+  static Color domainColor(String domain) {
+    if (domain.isEmpty) return domainPalette[0];
+    int hash = 0;
+    for (int i = 0; i < domain.length; i++) {
+      hash = domain.codeUnitAt(i) + ((hash << 5) - hash);
+    }
+    final index = hash.abs() % domainPalette.length;
+    return domainPalette[index];
+  }
+
   // ─── Design Tokens ───────────────────────────────────────────────────
 
-  /// Spacing Scale base (e.g. scale * 2 = 8, scale * 3 = 12)
+  /// Spacing Scale base
   static const double spacingScale = 4.0;
 
-  /// Card border radius (Things 3 / Linear compact look)
+  /// Card border radius
   static const double cardRadius = 8.0;
 
   /// Button and input fields border radius
@@ -237,7 +262,7 @@ class AppTheme {
       // ── Input Decoration ────────────────────────────────────────────
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: _surface,
+        fillColor: _surfaceVariant,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
           vertical: 12,
@@ -263,7 +288,7 @@ class AppTheme {
           borderSide: const BorderSide(color: _error, width: 1.0),
         ),
         hintStyle: const TextStyle(
-          color: _secondary,
+          color: textTertiary,
           fontSize: 13,
         ),
         labelStyle: const TextStyle(color: _onSurfaceVariant, fontSize: 13),
@@ -272,7 +297,7 @@ class AppTheme {
       // ── ElevatedButton ──────────────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _onSurface, // Monochromatic default
+          backgroundColor: _primary, // Accent CTA
           foregroundColor: _scaffoldBackground,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

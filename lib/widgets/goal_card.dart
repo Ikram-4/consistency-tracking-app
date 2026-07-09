@@ -43,11 +43,13 @@ class GoalCard extends StatelessWidget {
         break;
     }
 
-    // Determine status color and label if pace data is present
+    // Determine status color, label, and shape icon if pace data is present
     Color? statusColor;
     String? statusLabel;
+    IconData? statusIcon;
     if (paceData != null) {
       statusLabel = paceData!.progressLabel;
+      statusIcon = AppTheme.statusIcon(statusLabel);
       switch (paceData!.status) {
         case TrackingStatus.onTrack:
           statusColor = AppTheme.onTrack;
@@ -61,10 +63,12 @@ class GoalCard extends StatelessWidget {
       }
     }
 
+    final dColor = AppTheme.domainColor(goal.domain);
+
     return Card(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -75,38 +79,37 @@ class GoalCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
+                      color: dColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                      border: Border.all(color: dColor.withOpacity(0.25), width: 1),
                     ),
                     child: Text(
                       goal.domain.toUpperCase(),
                       style: textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: dColor,
                         fontWeight: FontWeight.bold,
+                        fontSize: 9,
                         letterSpacing: 0.5,
                       ),
                     ),
                   ),
-                  if (statusLabel != null && statusColor != null)
+                  if (statusLabel != null && statusColor != null && statusIcon != null)
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            shape: BoxShape.circle,
-                          ),
+                        Icon(
+                          statusIcon,
+                          size: 14,
+                          color: statusColor,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Text(
                           statusLabel,
                           style: textTheme.labelMedium?.copyWith(
                             color: statusColor,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
