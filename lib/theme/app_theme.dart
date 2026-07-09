@@ -35,8 +35,8 @@ class AppTheme {
 
   // ─── Pacing Status Colors (Real Earned Signals) ──────────────────────
 
-  /// Amber Gold — On Track
-  static const Color onTrack = Color(0xFFF0B429);
+  /// Amber Gold — On Track (Muted Ochre)
+  static const Color onTrack = Color(0xFFCCA043);
 
   /// Soft Orange-Red — Behind
   static const Color behind = Color(0xFFFF9466);
