@@ -97,11 +97,11 @@ class DashboardScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             children: [
               if (!hasCompletedReview) ...[
-                Card(
-                  color: theme.colorScheme.primaryContainer.withOpacity(0.08),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.3), width: 1),
+                Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2), width: 1),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -204,6 +204,7 @@ class DashboardScreen extends StatelessWidget {
                   final item = items[index];
                   final goal = goalProvider.getById(item.goal.id) ?? item.goal;
                   final pace = item.pace;
+
                   // Pacing status details
                   Color statusColor;
                   String statusText;
@@ -227,173 +228,239 @@ class DashboardScreen extends StatelessWidget {
 
                   // Progress percent display
                   double displayProgress = 0.0;
-                  String progressLabel = '';
+                  final InlineSpan progressSpan;
                   switch (goal.progressType) {
                     case ProgressType.milestone:
                       displayProgress = goal.progressPercent;
-                      progressLabel = '${goal.completedMilestoneCount}/${goal.milestones.length} milestones';
+                      progressSpan = TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${goal.completedMilestoneCount} ',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: AppTheme.dataWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '/ ${goal.milestones.length} ',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'milestones',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      );
                       break;
                     case ProgressType.count:
                       final target = goal.targetCount ?? 1;
                       displayProgress = (item.totalCheckIns / target).clamp(0.0, 1.0);
-                      progressLabel = '${item.totalCheckIns}/$target logs';
+                      progressSpan = TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${item.totalCheckIns} ',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: AppTheme.dataWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '/ $target ',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'logs',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      );
                       break;
                     case ProgressType.timeElapsed:
                       displayProgress = goal.progressPercent;
-                      progressLabel = '${(displayProgress * 100).toStringAsFixed(0)}% time elapsed';
+                      progressSpan = TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${(displayProgress * 100).toStringAsFixed(0)}% ',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: AppTheme.dataWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'time elapsed',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      );
                       break;
                   }
 
                   final dColor = AppTheme.domainColor(goal.domain);
 
-                  return Card(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => GoalDetailScreen(goalId: goal.id),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Goal title, domain, standing status
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        goal.title,
-                                        style: textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: dColor.withOpacity(0.12),
-                                          borderRadius: BorderRadius.circular(AppTheme.controlRadius),
-                                          border: Border.all(color: dColor.withOpacity(0.25), width: 1),
-                                        ),
-                                        child: Text(
-                                          goal.domain.toUpperCase(),
-                                          style: textTheme.labelSmall?.copyWith(
-                                            color: dColor,
+                  return Container(
+                    decoration: AppTheme.elevatedDecoration(), // Faint gradient top edge depth
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => GoalDetailScreen(goalId: goal.id),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Goal title, domain, standing status
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          goal.title,
+                                          style: textTheme.titleMedium?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 9,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: dColor.withOpacity(0.12),
+                                            borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                                            border: Border.all(color: dColor.withOpacity(0.25), width: 1),
+                                          ),
+                                          child: Text(
+                                            goal.domain.toUpperCase(),
+                                            style: textTheme.labelSmall?.copyWith(
+                                              color: dColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 9,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(statusIcon, size: 14, color: statusColor),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          statusText,
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.bold,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(AppTheme.controlRadius),
-                                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                                ],
+                              ),
+                              const Divider(height: 24),
+
+                              // Pacing metrics grid (Tabular high-contrast dataWhite numbers)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildMetricColumn(
+                                    context,
+                                    label: 'ACTUAL PACE',
+                                    value: '${pace.actualPace.toStringAsFixed(1)} /wk',
+                                    subtitle: 'Last 2 weeks',
                                   ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(statusIcon, size: 14, color: statusColor),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        statusText,
-                                        style: textTheme.labelSmall?.copyWith(
-                                          color: statusColor,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
+                                  _buildMetricColumn(
+                                    context,
+                                    label: 'REQUIRED PACE',
+                                    value: '${pace.requiredPace.toStringAsFixed(1)} /wk',
+                                    subtitle: 'To finish on time',
+                                  ),
+                                  _buildMetricColumn(
+                                    context,
+                                    label: 'TIME LEFT',
+                                    value: goal.daysRemaining >= 0
+                                        ? '${(goal.daysRemaining / 7).ceil()} wks'
+                                        : 'Expired',
+                                    subtitle: goal.daysRemaining >= 0
+                                        ? '${goal.daysRemaining} days'
+                                        : 'Target passed',
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Progress bar (Animated micro-interaction)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: SizedBox(
+                                  height: 4,
+                                  width: double.infinity,
+                                  child: TweenAnimationBuilder<double>(
+                                    tween: Tween<double>(begin: 0, end: displayProgress),
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (context, value, child) {
+                                      return LinearProgressIndicator(
+                                        value: value,
+                                        backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          goal.progressType == ProgressType.timeElapsed
+                                              ? theme.colorScheme.secondary
+                                              : theme.colorScheme.primary,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Divider(height: 24),
-
-                            // Pacing metrics grid
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildMetricColumn(
-                                  context,
-                                  label: 'ACTUAL PACE',
-                                  value: '${pace.actualPace.toStringAsFixed(1)} /wk',
-                                  subtitle: 'Last 2 weeks',
-                                ),
-                                _buildMetricColumn(
-                                  context,
-                                  label: 'REQUIRED PACE',
-                                  value: '${pace.requiredPace.toStringAsFixed(1)} /wk',
-                                  subtitle: 'To finish on time',
-                                ),
-                                _buildMetricColumn(
-                                  context,
-                                  label: 'TIME LEFT',
-                                  value: goal.daysRemaining >= 0
-                                      ? '${(goal.daysRemaining / 7).ceil()} wks'
-                                      : 'Expired',
-                                  subtitle: goal.daysRemaining >= 0
-                                      ? '${goal.daysRemaining} days'
-                                      : 'Target passed',
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Progress bar
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: SizedBox(
-                                height: 4,
-                                width: double.infinity,
-                                child: LinearProgressIndicator(
-                                  value: displayProgress,
-                                  backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    goal.progressType == ProgressType.timeElapsed
-                                        ? theme.colorScheme.secondary
-                                        : theme.colorScheme.primary,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  goal.progressType == ProgressType.timeElapsed ? 'Time Elapsed' : 'Goal Progress',
-                                  style: textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    goal.progressType == ProgressType.timeElapsed ? 'Time Elapsed' : 'Goal Progress',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  progressLabel,
-                                  style: textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: goal.progressType == ProgressType.timeElapsed
-                                        ? theme.colorScheme.secondary
-                                        : theme.colorScheme.primary,
+                                  Text.rich(
+                                    progressSpan,
+                                    style: textTheme.labelSmall,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -417,8 +484,8 @@ class DashboardScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    return Card(
-      color: theme.colorScheme.surfaceContainer,
+    return Container(
+      decoration: AppTheme.elevatedDecoration(), // Faint gradient top edge depth
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
         child: Column(
@@ -436,7 +503,7 @@ class DashboardScreen extends StatelessWidget {
             Text(
               value,
               style: textTheme.headlineMedium?.copyWith(
-                color: valueColor,
+                color: valueColor == theme.colorScheme.primary ? AppTheme.dataWhite : valueColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -477,6 +544,7 @@ class DashboardScreen extends StatelessWidget {
         Text(
           value,
           style: textTheme.titleMedium?.copyWith(
+            color: AppTheme.dataWhite, // Data contrast high-contrast tabular number
             fontWeight: FontWeight.bold,
           ),
         ),

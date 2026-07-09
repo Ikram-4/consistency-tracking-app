@@ -53,6 +53,7 @@ class _CheckInSheetState extends State<CheckInSheet> {
   String? _selectedGoalId;
   String? _selectedPracticeId;
   int _selectedEffortLevel = EffortLevel.moderate;
+  bool _isSuccess = false;
 
   @override
   void initState() {
@@ -101,13 +102,22 @@ class _CheckInSheetState extends State<CheckInSheet> {
     await checkInProvider.addCheckIn(checkIn);
 
     if (mounted) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Check-in logged successfully.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      setState(() {
+        _isSuccess = true;
+      });
+      
+      // Wait for the scale/fade checkmark animation to complete
+      await Future.delayed(const Duration(milliseconds: 700));
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Check-in logged successfully.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

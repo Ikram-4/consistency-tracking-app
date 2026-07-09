@@ -23,23 +23,87 @@ class GoalCard extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
 
-    // Calculate progress percent based on type
+    // Calculate progress details
     final double displayProgress;
-    final String progressText;
+    final InlineSpan progressSpan;
 
     switch (goal.progressType) {
       case ProgressType.milestone:
         displayProgress = goal.progressPercent;
-        progressText = '${goal.completedMilestoneCount} of ${goal.milestones.length} milestones';
+        progressSpan = TextSpan(
+          children: [
+            TextSpan(
+              text: '${goal.completedMilestoneCount} ',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppTheme.dataWhite,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'of ',
+              style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            TextSpan(
+              text: '${goal.milestones.length} ',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppTheme.dataWhite,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'milestones',
+              style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        );
         break;
       case ProgressType.count:
         final count = goal.targetCount ?? 1;
         displayProgress = (totalCheckIns / count).clamp(0.0, 1.0);
-        progressText = '$totalCheckIns of $count';
+        progressSpan = TextSpan(
+          children: [
+            TextSpan(
+              text: '$totalCheckIns ',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppTheme.dataWhite,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'of ',
+              style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            TextSpan(
+              text: '$count ',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppTheme.dataWhite,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'logs',
+              style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        );
         break;
       case ProgressType.timeElapsed:
         displayProgress = goal.progressPercent;
-        progressText = '${(displayProgress * 100).toStringAsFixed(0)}% time elapsed';
+        progressSpan = TextSpan(
+          children: [
+            TextSpan(
+              text: '${(displayProgress * 100).toStringAsFixed(0)}% ',
+              style: textTheme.bodySmall?.copyWith(
+                color: AppTheme.dataWhite,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'time elapsed',
+              style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        );
         break;
     }
 
@@ -65,107 +129,130 @@ class GoalCard extends StatelessWidget {
 
     final dColor = AppTheme.domainColor(goal.domain);
 
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Domain Chip and Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: dColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(AppTheme.controlRadius),
-                      border: Border.all(color: dColor.withOpacity(0.25), width: 1),
-                    ),
-                    child: Text(
-                      goal.domain.toUpperCase(),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: dColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 9,
-                        letterSpacing: 0.5,
+    return Container(
+      decoration: AppTheme.elevatedDecoration(), // Subtle physical depth top-edge gradient
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Domain Chip and Status
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: dColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                        border: Border.all(color: dColor.withOpacity(0.25), width: 1),
+                      ),
+                      child: Text(
+                        goal.domain.toUpperCase(),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: dColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 9,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
-                  ),
-                  if (statusLabel != null && statusColor != null && statusIcon != null)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          statusIcon,
-                          size: 14,
-                          color: statusColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          statusLabel,
-                          style: textTheme.labelMedium?.copyWith(
+                    if (statusLabel != null && statusColor != null && statusIcon != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            statusIcon,
+                            size: 14,
                             color: statusColor,
-                            fontWeight: FontWeight.bold,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            statusLabel,
+                            style: textTheme.labelMedium?.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Title
+                Text(
+                  goal.title,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+
+                // Days remaining (Tabular numbers)
+                Text.rich(
+                  goal.daysRemaining >= 0
+                      ? TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${goal.daysRemaining} ',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppTheme.dataWhite,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'days left',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        )
+                      : TextSpan(
+                          text: 'Target date passed',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ],
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Title
-              Text(
-                goal.title,
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 4),
+                const SizedBox(height: 16),
 
-              // Days remaining
-              Text(
-                goal.daysRemaining >= 0
-                    ? '${goal.daysRemaining} days left'
-                    : 'Target date passed',
-                style: textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Progress Bar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: SizedBox(
-                  height: 4,
-                  width: double.infinity,
-                  child: LinearProgressIndicator(
-                    value: displayProgress,
-                    backgroundColor: theme.colorScheme.outline.withOpacity(0.3),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      goal.progressType == ProgressType.timeElapsed
-                          ? theme.colorScheme.secondary
-                          : theme.colorScheme.primary,
+                // Progress Bar with Micro-interaction animation
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: SizedBox(
+                    height: 4,
+                    width: double.infinity,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: displayProgress),
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return LinearProgressIndicator(
+                          value: value,
+                          backgroundColor: theme.colorScheme.outline.withOpacity(0.3),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            goal.progressType == ProgressType.timeElapsed
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.primary,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              // Progress details text
-              Text(
-                progressText,
-                style: textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+                // Progress details text (Tabular contrast numbers)
+                Text.rich(progressSpan),
+              ],
+            ),
           ),
         ),
       ),

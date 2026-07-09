@@ -1,45 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Premium, opinionated minimal dark theme for Phantom.
+/// Understated, low-contrast, and desaturated dark theme for Phantom.
 ///
-/// Design system inspired by Linear, Arc, and Things 3.
-/// Features a graphite-charcoal base, terracotta/copper accent used sparsely,
-/// and unique muted progress tracking colors.
+/// Designed to feel calm and quiet, with energy concentrated in deliberate
+/// spots: key numbers (data contrast), primary CTAs (warm copper), and subtle gradients.
 class AppTheme {
   AppTheme._();
 
   // ─── Color Palette ───────────────────────────────────────────────────
 
-  static const Color _scaffoldBackground = Color(0xFF0E0E10); // Background
-  static const Color _surface = Color(0xFF18181B);            // Surface
-  static const Color _surfaceVariant = Color(0xFF1F1F23);     // Elevated
-  static const Color _border = Color(0xFF2A2A2E);             // Border
+  static const Color _scaffoldBackground = Color(0xFF0A0A0B); // Background
+  static const Color _surface = Color(0xFF131314);            // Surface Card (base gradient bottom)
+  static const Color _surfaceVariant = Color(0xFF19191B);     // Elevated Layer (base gradient top)
+  static const Color _border = Color(0xFF232325);             // Subtle Seam Border
   
-  static const Color _primary = Color(0xFFD97757);            // Accent (Terracotta/Copper)
-  static const Color _primaryContainer = Color(0xFF2C1B15);   // Deep Accent Container
-  static const Color _onPrimary = Color(0xFFEDEDEF);          // Text on Primary (Light)
+  static const Color _primary = Color(0xFFC77B4E);            // Saturated Copper Accent
+  static const Color _primaryContainer = Color(0xFF2D1E16);   // Deep Copper Container
+  static const Color _onPrimary = Color(0xFFF5F5F0);          // Contrast text on primary
   
-  static const Color _secondary = Color(0xFF8E8E93);          // Text secondary
-  static const Color _onSurface = Color(0xFFEDEDEF);          // Text primary
-  static const Color _onSurfaceVariant = Color(0xFF8E8E93);   // Text secondary
-  static const Color _error = Color(0xFFB85C4E);              // Falling off / Error
+  static const Color _secondary = Color(0xFF7A7A7D);          // Text secondary
+  static const Color _onSurface = Color(0xFFD4D4D6);          // Text primary (Off-white)
+  static const Color _onSurfaceVariant = Color(0xFF7A7A7D);   // Text secondary
+  static const Color _error = Color(0xFF7A6363);              // Falling off / Error
 
-  // ─── Extended Text Colors ────────────────────────────────────────────
+  // ─── Extended Text/Data Colors ───────────────────────────────────────
 
-  /// Text tertiary color (for supportive, very muted notes)
-  static const Color textTertiary = Color(0xFF5C5C60);
+  /// Crisp near-white for high-contrast data numbers
+  static const Color dataWhite = Color(0xFFF5F5F0);
 
-  // ─── Pacing Status Colors ────────────────────────────────────────────
+  /// Very muted tertiary text color (supporting info, dates, times)
+  static const Color textTertiary = Color(0xFF4A4A4D);
 
-  /// Muted Sage Green — On Track
-  static const Color onTrack = Color(0xFF7C9A7E);
+  // ─── Pacing Status Colors (Desaturated hint of hue) ──────────────────
 
-  /// Muted Ochre Yellow — Behind
-  static const Color behind = Color(0xFFC9A64D);
+  /// Near-grayscale muted green
+  static const Color onTrack = Color(0xFF6B7A6D);
 
-  /// Muted Copper Red — Falling Off
-  static const Color fallingOff = Color(0xFFB85C4E);
+  /// Near-grayscale muted gold/ochre
+  static const Color behind = Color(0xFF8A7D63);
+
+  /// Near-grayscale muted coral/red
+  static const Color fallingOff = Color(0xFF7A6363);
 
   /// Returns the appropriate status color.
   static Color statusColor(String status) {
@@ -75,12 +77,12 @@ class AppTheme {
 
   // ─── Domain Palette & Hashing ────────────────────────────────────────
 
-  /// Domain tag color options
+  /// Close-in-value muted tones that feel like one quiet family
   static const List<Color> domainPalette = [
-    Color(0xFF6E85A6), // Slate Blue
-    Color(0xFF7C9A7E), // Sage Green
-    Color(0xFFD97757), // Copper
-    Color(0xFF8B7BA6), // Heather Purple
+    Color(0xFF6B7278), // Quiet Slate
+    Color(0xFF6B7A6D), // Quiet Green
+    Color(0xFF8A7A6D), // Quiet Taupe
+    Color(0xFF786B7A), // Quiet Purple
   ];
 
   /// Returns a consistent color for a given domain string based on its hash.
@@ -105,28 +107,44 @@ class AppTheme {
   /// Button and input fields border radius
   static const double controlRadius = 6.0;
 
+  /// Returns a faint gradient decoration for elevated elements.
+  static BoxDecoration elevatedDecoration() {
+    return BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFF19191B), // Faintly lighter top
+          Color(0xFF131314), // Faintly darker bottom
+        ],
+      ),
+      borderRadius: BorderRadius.circular(cardRadius),
+      border: Border.all(color: _border, width: 1),
+    );
+  }
+
   // ─── Typography ──────────────────────────────────────────────────────
 
   static TextTheme _buildTextTheme() {
     return TextTheme(
       displayLarge: GoogleFonts.inter(
         fontSize: 56,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w700,
         letterSpacing: -1.0,
-        color: _onSurface,
+        color: dataWhite,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       displayMedium: GoogleFonts.inter(
         fontSize: 44,
-        fontWeight: FontWeight.w300,
+        fontWeight: FontWeight.w700,
         letterSpacing: -0.5,
-        color: _onSurface,
+        color: dataWhite,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       displaySmall: GoogleFonts.inter(
         fontSize: 36,
-        fontWeight: FontWeight.w400,
-        color: _onSurface,
+        fontWeight: FontWeight.w700,
+        color: dataWhite,
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
       headlineLarge: GoogleFonts.inter(
@@ -239,7 +257,7 @@ class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: FontWeight.w700,
           color: _onSurface,
           letterSpacing: -0.2,
@@ -297,7 +315,7 @@ class AppTheme {
       // ── ElevatedButton ──────────────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _primary, // Accent CTA
+          backgroundColor: _primary, // Accent CTA (Warm copper)
           foregroundColor: _scaffoldBackground,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
