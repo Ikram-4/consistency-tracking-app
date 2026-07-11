@@ -183,22 +183,88 @@ class GoalDetailScreen extends StatelessWidget {
 
         // Progress Details
         final double displayProgress;
-        final String progressText;
+        final InlineSpan progressSpan;
         switch (goal.progressType) {
           case ProgressType.milestone:
             displayProgress = goal.progressPercent;
-            progressText = '${goal.completedMilestoneCount} of ${goal.milestones.length} milestones';
+            progressSpan = TextSpan(
+              children: [
+                TextSpan(
+                  text: '${goal.completedMilestoneCount} ',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: 'of ',
+                  style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+                TextSpan(
+                  text: '${goal.milestones.length} ',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: 'milestones',
+                  style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            );
             break;
           case ProgressType.count:
             final count = goal.targetCount ?? 1;
             displayProgress = (totalCheckIns / count).clamp(0.0, 1.0);
-            progressText = '$totalCheckIns of $count logged';
+            progressSpan = TextSpan(
+              children: [
+                TextSpan(
+                  text: '$totalCheckIns ',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: 'of ',
+                  style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+                TextSpan(
+                  text: '$count ',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: 'logs',
+                  style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            );
             break;
           case ProgressType.timeElapsed:
             displayProgress = goal.progressPercent;
-            progressText = '${(displayProgress * 100).toStringAsFixed(0)}% time elapsed';
+            progressSpan = TextSpan(
+              children: [
+                TextSpan(
+                  text: '${(displayProgress * 100).toStringAsFixed(0)}% ',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: AppTheme.dataWhite,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextSpan(
+                  text: 'time elapsed',
+                  style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            );
             break;
         }
+
+        final dColor = AppTheme.domainColor(goal.domain);
 
         Color? statusColor;
         switch (paceData.status) {
@@ -257,7 +323,8 @@ class GoalDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             children: [
               // ── OVERVIEW CARD ──
-              Card(
+              Container(
+                decoration: AppTheme.elevatedDecoration(),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -267,16 +334,18 @@ class GoalDetailScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(8),
+                              color: dColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(AppTheme.controlRadius),
+                              border: Border.all(color: dColor.withOpacity(0.25), width: 1),
                             ),
                             child: Text(
                               goal.domain.toUpperCase(),
                               style: textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                                color: dColor,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 9,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -284,20 +353,17 @@ class GoalDetailScreen extends StatelessWidget {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
-                                ),
+                              Icon(
+                                AppTheme.statusIcon(paceData.progressLabel),
+                                size: 14,
+                                color: statusColor,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 4),
                               Text(
                                 paceData.progressLabel,
                                 style: textTheme.labelMedium?.copyWith(
                                   color: statusColor,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -308,17 +374,36 @@ class GoalDetailScreen extends StatelessWidget {
                       Text(
                         'Target Date: ${PhantomDateHelpers.formatDate(goal.targetDate)}',
                         style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.dataWhite,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      Text.rich(
                         goal.daysRemaining >= 0
-                            ? '${goal.daysRemaining} days remaining'
-                            : 'Target date passed',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                            ? TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '${goal.daysRemaining} ',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: AppTheme.dataWhite,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'days remaining',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : TextSpan(
+                                text: 'Target date passed',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                       ),
                       if (goal.whyStatement != null && goal.whyStatement!.isNotEmpty) ...[
                         const Divider(height: 24),
@@ -349,8 +434,8 @@ class GoalDetailScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            progressText,
+                          Text.rich(
+                            progressSpan,
                             style: textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -363,14 +448,21 @@ class GoalDetailScreen extends StatelessWidget {
                         child: SizedBox(
                           height: 6,
                           width: double.infinity,
-                          child: LinearProgressIndicator(
-                            value: displayProgress,
-                            backgroundColor: theme.colorScheme.outline.withOpacity(0.3),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              goal.progressType == ProgressType.timeElapsed
-                                  ? theme.colorScheme.secondary
-                                  : theme.colorScheme.primary,
-                            ),
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(begin: 0, end: displayProgress),
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) {
+                              return LinearProgressIndicator(
+                                value: value,
+                                backgroundColor: theme.colorScheme.outline.withOpacity(0.3),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  goal.progressType == ProgressType.timeElapsed
+                                      ? theme.colorScheme.secondary
+                                      : theme.colorScheme.primary,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ),

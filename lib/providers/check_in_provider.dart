@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:phantom/models/check_in.dart';
 import 'package:phantom/repositories/check_in_repository.dart';
 import 'package:phantom/utils/date_helpers.dart';
+import 'package:phantom/services/notification_service.dart';
 
 /// Manages check-in state and business logic.
 ///
@@ -31,12 +32,14 @@ class CheckInProvider extends ChangeNotifier {
   Future<void> addCheckIn(CheckIn checkIn) async {
     await _checkInRepo.save(checkIn);
     loadCheckIns();
+    await NotificationService.instance.reschedule();
   }
 
   /// Deletes the check-in with the given [id].
   Future<void> deleteCheckIn(String id) async {
     await _checkInRepo.delete(id);
     loadCheckIns();
+    await NotificationService.instance.reschedule();
   }
 
   /// Returns check-ins for the practice with [practiceId].

@@ -12,6 +12,7 @@ import 'package:phantom/screens/goal_detail_screen.dart';
 import 'package:phantom/screens/goal_form_screen.dart';
 import 'package:phantom/theme/app_theme.dart';
 import 'package:phantom/utils/date_helpers.dart';
+import 'package:phantom/screens/settings_screen.dart';
 
 /// Standing Dashboard screen displaying a professional overview of the user's progress.
 class DashboardScreen extends StatelessWidget {
@@ -25,6 +26,19 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Standing Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Notification Settings',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer5<GoalProvider, PracticeProvider, CheckInProvider, StatsProvider, WeeklyReviewProvider>(
         builder: (context, goalProvider, practiceProvider, checkInProvider, statsProvider, weeklyReviewProvider, child) {
