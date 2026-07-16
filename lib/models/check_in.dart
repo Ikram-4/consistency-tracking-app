@@ -15,6 +15,14 @@ class CheckIn {
   final int? durationMinutes;
   final DateTime timestamp;
 
+  /// Relative effort/duration weight for this check-in, used by the habit
+  /// model's diminishing-returns consistency formula.
+  ///
+  /// Defaults to 1.0 for a standard session. A short warm-up might be 0.5;
+  /// a long focused session might be 2.0. Backward-compatible: existing
+  /// stored records without this key are read as 1.0.
+  final double weight;
+
   CheckIn({
     String? id,
     required this.practiceId,
@@ -23,6 +31,7 @@ class CheckIn {
     required this.effortLevel,
     this.durationMinutes,
     DateTime? timestamp,
+    this.weight = 1.0,
   })  : id = id ?? const Uuid().v4(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -34,6 +43,7 @@ class CheckIn {
     int? effortLevel,
     Object? durationMinutes = _sentinel,
     DateTime? timestamp,
+    double? weight,
   }) {
     return CheckIn(
       id: id ?? this.id,
@@ -45,6 +55,7 @@ class CheckIn {
           ? this.durationMinutes
           : durationMinutes as int?,
       timestamp: timestamp ?? this.timestamp,
+      weight: weight ?? this.weight,
     );
   }
 
@@ -57,6 +68,7 @@ class CheckIn {
       'effortLevel': effortLevel,
       'durationMinutes': durationMinutes,
       'timestamp': timestamp.toIso8601String(),
+      'weight': weight,
     };
   }
 
@@ -69,6 +81,8 @@ class CheckIn {
       effortLevel: map['effortLevel'] as int,
       durationMinutes: map['durationMinutes'] as int?,
       timestamp: DateTime.parse(map['timestamp'] as String),
+      // Backward-compatible default: existing records without 'weight' → 1.0
+      weight: (map['weight'] as num?)?.toDouble() ?? 1.0,
     );
   }
 
@@ -76,7 +90,8 @@ class CheckIn {
   String toString() {
     return 'CheckIn(id: $id, practiceId: $practiceId, goalId: $goalId, '
         'note: $note, effortLevel: $effortLevel, '
-        'durationMinutes: $durationMinutes, timestamp: $timestamp)';
+        'durationMinutes: $durationMinutes, weight: $weight, '
+        'timestamp: $timestamp)';
   }
 
   @override

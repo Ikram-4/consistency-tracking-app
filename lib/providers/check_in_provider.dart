@@ -4,6 +4,19 @@ import 'package:phantom/models/check_in.dart';
 import 'package:phantom/repositories/check_in_repository.dart';
 import 'package:phantom/utils/date_helpers.dart';
 import 'package:phantom/services/notification_service.dart';
+import 'package:phantom/services/widget_service.dart';
+import 'package:phantom/utils/streak_calculator.dart';
+
+/// The result of a check-in submission, containing streak information for celebrations.
+class CheckInResult {
+  final int streak;
+  final bool isStreakMilestone;
+
+  const CheckInResult({
+    required this.streak,
+    required this.isStreakMilestone,
+  });
+}
 
 /// Manages check-in state and business logic.
 ///
@@ -29,10 +42,24 @@ class CheckInProvider extends ChangeNotifier {
   }
 
   /// Persists a new [checkIn] and refreshes the in-memory list.
-  Future<void> addCheckIn(CheckIn checkIn) async {
+  Future<CheckInResult> addCheckIn(CheckIn checkIn) async {
     await _checkInRepo.save(checkIn);
-    loadCheckIns();
+    
+    // Crucial: Load into memory and notify listeners first, so provider exposes up-to-date check-ins
+    _checkIns = _checkInRepo.getAll();
+    notifyListeners();
+
+    // Now calculate streak from provider's own up-to-date state
+    final streak = calculateStreak(checkIn.practiceId, _checkIns, DateTime.now());
+    final isStreakMilestone = const {7, 14, 30, 50, 100}.contains(streak);
+
     await NotificationService.instance.reschedule();
+    await WidgetService.instance.updateWidget();
+
+    return CheckInResult(
+      streak: streak,
+      isStreakMilestone: isStreakMilestone,
+    );
   }
 
   /// Deletes the check-in with the given [id].
@@ -40,6 +67,7 @@ class CheckInProvider extends ChangeNotifier {
     await _checkInRepo.delete(id);
     loadCheckIns();
     await NotificationService.instance.reschedule();
+    await WidgetService.instance.updateWidget();
   }
 
   /// Returns check-ins for the practice with [practiceId].

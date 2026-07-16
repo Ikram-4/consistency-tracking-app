@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#131314"
+    android:padding="12dp">
+
+    <!-- Header Section (Always Visible) -->
+    <LinearLayout
+        android:id="@+id/widget_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@mipmap/launcher_icon"
+            android:contentDescription="Phantom Icon"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phantom"
+            android:textColor="#7A7A7D"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+    </LinearLayout>
+
+    <!-- Placeholder Empty State -->
+    <TextView
+        android:id="@+id/widget_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_header"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:text="Open Phantom to get started"
+        android:textColor="#7A7A7D"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <!-- Content Layout (Visible when hasData is true) -->
+    <LinearLayout
+        android:id="@+id/widget_content_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/widget_header"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <!-- Standings Summary -->
+        <TextView
+            android:id="@+id/widget_standing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 / 0 on track"
+            android:textColor="#D4D4D6"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Behind Practice Warning (Hidden when all are on track) -->
+        <LinearLayout
+            android:id="@+id/widget_behind_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/widget_behind_practice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠ DSA needs attention"
+                android:textColor="#7A6363"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Last Log Time -->
+        <TextView
+            android:id="@+id/widget_last_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No logs yet"
+            android:textColor="#7A7A7D"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+</RelativeLayout>

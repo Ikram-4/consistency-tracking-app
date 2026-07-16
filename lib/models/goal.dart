@@ -14,6 +14,14 @@ enum ProgressType {
   timeElapsed,
 }
 
+/// The tuning profile used for consistency logic.
+enum HabitProfile {
+  intensity,
+  duration,
+  singleSession,
+  frequency,
+}
+
 /// Represents a user-defined goal with optional milestones and tracking metadata.
 ///
 /// Goals belong to a user-defined domain (free text) and track progress
@@ -30,6 +38,7 @@ class Goal {
   final List<Milestone> milestones;
   final DateTime createdAt;
   final bool isArchived;
+  final HabitProfile profile;
 
   Goal({
     String? id,
@@ -41,6 +50,7 @@ class Goal {
     List<Milestone>? milestones,
     DateTime? createdAt,
     this.isArchived = false,
+    this.profile = HabitProfile.duration,
   })  : id = id ?? const Uuid().v4(),
         milestones = milestones ?? [],
         createdAt = createdAt ?? DateTime.now();
@@ -100,6 +110,7 @@ class Goal {
     List<Milestone>? milestones,
     DateTime? createdAt,
     bool? isArchived,
+    HabitProfile? profile,
   }) {
     return Goal(
       id: id ?? this.id,
@@ -115,6 +126,7 @@ class Goal {
       milestones: milestones ?? this.milestones,
       createdAt: createdAt ?? this.createdAt,
       isArchived: isArchived ?? this.isArchived,
+      profile: profile ?? this.profile,
     );
   }
 
@@ -133,6 +145,7 @@ class Goal {
       'milestones': milestones.map((m) => m.toMap()).toList(),
       'createdAt': createdAt.toIso8601String(),
       'isArchived': isArchived,
+      'profile': profile.name,
     };
   }
 
@@ -150,6 +163,12 @@ class Goal {
           [],
       createdAt: DateTime.parse(map['createdAt'] as String),
       isArchived: map['isArchived'] as bool? ?? false,
+      profile: map['profile'] != null
+          ? HabitProfile.values.firstWhere(
+              (e) => e.name == map['profile'] as String,
+              orElse: () => HabitProfile.duration,
+            )
+          : HabitProfile.duration,
     );
   }
 
@@ -158,7 +177,7 @@ class Goal {
     return 'Goal(id: $id, title: $title, domain: $domain, '
         'targetDate: $targetDate, whyStatement: $whyStatement, '
         'targetCount: $targetCount, milestones: $milestones, '
-        'createdAt: $createdAt, isArchived: $isArchived)';
+        'createdAt: $createdAt, isArchived: $isArchived, profile: $profile)';
   }
 
   @override

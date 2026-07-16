@@ -26,6 +26,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
   DateTime? _selectedTargetDate;
   final List<Milestone> _milestones = [];
+  late HabitProfile _selectedProfile;
 
   bool get _isEditMode => widget.goal != null;
 
@@ -42,6 +43,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     );
 
     _selectedTargetDate = g?.targetDate;
+    _selectedProfile = g?.profile ?? HabitProfile.duration;
     if (g != null) {
       _milestones.addAll(g.milestones);
     }
@@ -132,6 +134,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         whyStatement: _whyController.text.trim().isEmpty ? null : _whyController.text.trim(),
         targetCount: targetCount,
         milestones: cleanedMilestones,
+        profile: _selectedProfile,
       );
       await goalProvider.updateGoal(updatedGoal);
     } else {
@@ -142,6 +145,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         whyStatement: _whyController.text.trim().isEmpty ? null : _whyController.text.trim(),
         targetCount: targetCount,
         milestones: cleanedMilestones,
+        profile: _selectedProfile,
       );
       await goalProvider.addGoal(newGoal);
     }
@@ -346,6 +350,82 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                   hintText: 'Why does this goal matter to you? Keep it serious.',
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Tuning Profile / Style
+              Text(
+                'HABIT PROFILE / TUNING STYLE',
+                style: textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<HabitProfile>(
+                value: _selectedProfile,
+                onChanged: (HabitProfile? val) {
+                  if (val != null) {
+                    setState(() {
+                      _selectedProfile = val;
+                    });
+                  }
+                },
+                items: HabitProfile.values.map((profile) {
+                  final name = profile.name[0].toUpperCase() + profile.name.substring(1);
+                  return DropdownMenuItem<HabitProfile>(
+                    value: profile,
+                    child: Text(name),
+                  );
+                }).toList(),
+                decoration: const InputDecoration(
+                  helperText: 'Controls how check-in weights affect consistency math.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      _getProfileIcon(_selectedProfile),
+                      color: _getProfileColor(context, _selectedProfile),
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getProfileTitle(_selectedProfile),
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getProfileDescription(_selectedProfile),
+                            style: textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 32),
 
               // Milestones Section
@@ -461,5 +541,58 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         ),
       ),
     );
+  }
+
+  IconData _getProfileIcon(HabitProfile profile) {
+    switch (profile) {
+      case HabitProfile.intensity:
+        return Icons.local_fire_department;
+      case HabitProfile.duration:
+        return Icons.hourglass_empty;
+      case HabitProfile.singleSession:
+        return Icons.check_circle_outline;
+      case HabitProfile.frequency:
+        return Icons.repeat;
+    }
+  }
+
+  Color _getProfileColor(BuildContext context, HabitProfile profile) {
+    final theme = Theme.of(context);
+    switch (profile) {
+      case HabitProfile.intensity:
+        return Colors.orangeAccent;
+      case HabitProfile.duration:
+        return theme.colorScheme.primary;
+      case HabitProfile.singleSession:
+        return Colors.green;
+      case HabitProfile.frequency:
+        return theme.colorScheme.secondary;
+    }
+  }
+
+  String _getProfileTitle(HabitProfile profile) {
+    switch (profile) {
+      case HabitProfile.intensity:
+        return 'Intensity Style';
+      case HabitProfile.duration:
+        return 'Duration Style (Default)';
+      case HabitProfile.singleSession:
+        return 'Single Session Style';
+      case HabitProfile.frequency:
+        return 'Frequency Style';
+    }
+  }
+
+  String _getProfileDescription(HabitProfile profile) {
+    switch (profile) {
+      case HabitProfile.intensity:
+        return 'Best for workouts or gym. Higher consistency ceiling (4.0); multiple sessions in a day yield substantial focus boosts.';
+      case HabitProfile.duration:
+        return 'Best for study or reading. Progress scales steadily with the time and effort you invest in your study sessions.';
+      case HabitProfile.singleSession:
+        return 'Best for meditation or vitamins. Logging a check-in once gives near-maximum credit; extra logs do not add more progress.';
+      case HabitProfile.frequency:
+        return 'Best for drinking water or posture checks. Many small checks build consistency quickly, so small actions add up fast.';
+    }
   }
 }

@@ -3,6 +3,22 @@ import 'package:flutter/foundation.dart';
 import 'package:phantom/models/goal.dart';
 import 'package:phantom/repositories/goal_repository.dart';
 import 'package:phantom/repositories/practice_repository.dart';
+import 'package:phantom/services/widget_service.dart';
+
+/// The result of toggling a milestone, containing details used to trigger celebrations.
+class MilestoneToggleResult {
+  final bool wasCompleted;
+  final bool isGoalComplete;
+  final int completedCount;
+  final int totalCount;
+
+  const MilestoneToggleResult({
+    required this.wasCompleted,
+    required this.isGoalComplete,
+    required this.completedCount,
+    required this.totalCount,
+  });
+}
 
 /// Manages goal state and business logic.
 ///
@@ -44,12 +60,14 @@ class GoalProvider extends ChangeNotifier {
   Future<void> addGoal(Goal goal) async {
     await _goalRepo.save(goal);
     loadGoals();
+    await WidgetService.instance.updateWidget();
   }
 
   /// Updates an existing [goal] and refreshes the in-memory list.
   Future<void> updateGoal(Goal goal) async {
     await _goalRepo.save(goal);
     loadGoals();
+    await WidgetService.instance.updateWidget();
   }
 
   /// Deletes the goal with the given [id] and all practices attached to it.
@@ -62,6 +80,7 @@ class GoalProvider extends ChangeNotifier {
 
     await _goalRepo.delete(id);
     loadGoals();
+    await WidgetService.instance.updateWidget();
   }
 
   /// Archives the goal with the given [id].
@@ -75,19 +94,25 @@ class GoalProvider extends ChangeNotifier {
     final archived = goal.copyWith(isArchived: true);
     await _goalRepo.save(archived);
     loadGoals();
+    await WidgetService.instance.updateWidget();
   }
 
   /// Toggles the completion status of a milestone within a goal.
   ///
   /// Finds the milestone with [milestoneId] inside the goal identified
   /// by [goalId], flips its `isCompleted` flag, and persists the change.
-  Future<void> toggleMilestone(String goalId, String milestoneId) async {
+  Future<MilestoneToggleResult?> toggleMilestone(String goalId, String milestoneId) async {
     final goal = _goalRepo.getById(goalId);
-    if (goal == null) return;
+    if (goal == null) return null;
 
+    bool wasCompleted = false;
     final updatedMilestones = goal.milestones.map((m) {
       if (m.id == milestoneId) {
-        return m.copyWith(isCompleted: !m.isCompleted);
+        final newCompleted = !m.isCompleted;
+        if (newCompleted) {
+          wasCompleted = true; // Newly completed milestone
+        }
+        return m.copyWith(isCompleted: newCompleted);
       }
       return m;
     }).toList();
@@ -95,6 +120,18 @@ class GoalProvider extends ChangeNotifier {
     final updatedGoal = goal.copyWith(milestones: updatedMilestones);
     await _goalRepo.save(updatedGoal);
     loadGoals();
+    await WidgetService.instance.updateWidget();
+
+    final totalCount = updatedGoal.milestones.length;
+    final completedCount = updatedGoal.milestones.where((m) => m.isCompleted).length;
+    final isGoalComplete = completedCount == totalCount;
+
+    return MilestoneToggleResult(
+      wasCompleted: wasCompleted,
+      isGoalComplete: isGoalComplete,
+      completedCount: completedCount,
+      totalCount: totalCount,
+    );
   }
 
   /// Returns the goal with the given [id], or `null` if not found.

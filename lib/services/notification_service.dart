@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import '../models/check_in.dart';
 import '../models/practice.dart';
 import '../repositories/goal_repository.dart';
 import '../repositories/practice_repository.dart';
 import '../repositories/check_in_repository.dart';
 import '../repositories/settings_repository.dart';
-import '../utils/date_helpers.dart';
+import '../utils/pace_calculator.dart';
+import '../utils/streak_calculator.dart';
 
 /// Singleton service managing all local accountability notification nudges.
 ///
@@ -140,111 +140,18 @@ class NotificationService {
 
       final checkIns = _checkInRepo.getAll();
       final activePractices = _practiceRepo.getActive();
+      final activeGoals = _goalRepo.getActive();
 
-      // 1. Identify which practices are behind pace this week
-      final List<Practice> behindPractices = [];
-      final startOfWeek = tz.TZDateTime.from(PhantomDateHelpers.weekStart(now), tz.local);
-      final endOfWeek = tz.TZDateTime.from(PhantomDateHelpers.weekEnd(now), tz.local);
-      final daysRemaining = 8 - now.weekday; // Days remaining including today
+      // Use shared standings calculator
+      final summary = PaceCalculator.calculateStandings(
+        activeGoals: activeGoals,
+        activePractices: activePractices,
+        checkIns: checkIns,
+        now: now,
+        getGoalById: (id) => _goalRepo.getById(id),
+      );
 
-      for (final practice in activePractices) {
-        final thisWeeksCheckIns = checkIns.where((c) {
-          if (c.practiceId != practice.id) return false;
-          final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-          return !checkInKolkata.isBefore(startOfWeek) && !checkInKolkata.isAfter(endOfWeek);
-        }).toList();
-        final completedCount = thisWeeksCheckIns.length;
-        final sessionsNeeded = practice.weeklyTarget - completedCount;
-
-        if (sessionsNeeded <= 0) continue; // Met weekly target
-
-        final hasCheckedInToday = checkIns.any((c) {
-          if (c.practiceId != practice.id) return false;
-          final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-          return checkInKolkata.year == now.year &&
-              checkInKolkata.month == now.month &&
-              checkInKolkata.day == now.day;
-        });
-
-        // Calculate expected linear pace by today
-        final expectedLinear = (practice.weeklyTarget / 7.0) * now.weekday;
-
-        // Nudge if:
-        // a) Mathematically mandatory: sessions needed >= days remaining
-        // b) Under linear target pace AND has not practiced yet today
-        final isMandatory = sessionsNeeded >= daysRemaining;
-        final isBehindExpected = completedCount < expectedLinear;
-
-        if ((isMandatory || isBehindExpected) && !hasCheckedInToday) {
-          behindPractices.add(practice);
-        }
-      }
-
-      // 2. Rank behind practices by priority (if any exist)
-      if (behindPractices.isNotEmpty) {
-        behindPractices.sort((a, b) {
-          final streakA = _calculateStreak(a.id, checkIns, now);
-          final streakB = _calculateStreak(b.id, checkIns, now);
-
-          final hasCheckedInTodayA = checkIns.any((c) {
-            if (c.practiceId != a.id) return false;
-            final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-            return checkInKolkata.year == now.year &&
-                checkInKolkata.month == now.month &&
-                checkInKolkata.day == now.day;
-          });
-          
-          final hasCheckedInTodayB = checkIns.any((c) {
-            if (c.practiceId != b.id) return false;
-            final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-            return checkInKolkata.year == now.year &&
-                checkInKolkata.month == now.month &&
-                checkInKolkata.day == now.day;
-          });
-
-          final atRiskA = streakA >= 3 && !hasCheckedInTodayA;
-          final atRiskB = streakB >= 3 && !hasCheckedInTodayB;
-
-          // Highest active streak at risk today comes first
-          if (atRiskA != atRiskB) {
-            return atRiskA ? -1 : 1;
-          }
-          if (atRiskA) {
-            if (streakA != streakB) {
-              return streakB.compareTo(streakA); // Descending streak length
-            }
-          }
-
-          // Then by how far behind weekly target
-          final completedA = checkIns.where((c) {
-            if (c.practiceId != a.id) return false;
-            final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-            return !checkInKolkata.isBefore(startOfWeek) && !checkInKolkata.isAfter(endOfWeek);
-          }).length;
-          
-          final completedB = checkIns.where((c) {
-            if (c.practiceId != b.id) return false;
-            final checkInKolkata = tz.TZDateTime.from(c.timestamp, tz.local);
-            return !checkInKolkata.isBefore(startOfWeek) && !checkInKolkata.isAfter(endOfWeek);
-          }).length;
-
-          final diffA = a.weeklyTarget - completedA;
-          final diffB = b.weeklyTarget - completedB;
-          if (diffA != diffB) {
-            return diffB.compareTo(diffA); // Descending distance
-          }
-
-          // Then by earliest goal targetDate
-          final goalA = _goalRepo.getById(a.goalId);
-          final goalB = _goalRepo.getById(b.goalId);
-          if (goalA != null && goalB != null) {
-            return goalA.targetDate.compareTo(goalB.targetDate); // Earliest first
-          }
-
-          return 0;
-        });
-      }
-
+      final behindPractices = summary.behindPractices;
       final int behindCount = behindPractices.length;
       final List<String> times = _settingsRepo.reminderTimes; // e.g. ["16:00", "19:00", "22:00"]
 
@@ -274,7 +181,8 @@ class NotificationService {
         if (i < behindCount) {
           // This slot has a behind practice to nudge about
           final practice = behindPractices[i];
-          final streak = _calculateStreak(practice.id, checkIns, now);
+          // Use shared streak calculator
+          final streak = calculateStreak(practice.id, checkIns, now);
           title = 'Practice Reminder';
           body = _getNudgeMessage(practice, streak);
 
@@ -376,38 +284,7 @@ class NotificationService {
     return messages[dayIndex];
   }
 
-  int _calculateStreak(String practiceId, List<CheckIn> checkIns, DateTime today) {
-    final practiceCheckIns = checkIns.where((c) => c.practiceId == practiceId).toList();
-    if (practiceCheckIns.isEmpty) return 0;
 
-    final todayDate = DateTime(today.year, today.month, today.day);
-    final yesterdayDate = todayDate.subtract(const Duration(days: 1));
-
-    final loggedToday = practiceCheckIns.any((c) =>
-        DateTime(c.timestamp.year, c.timestamp.month, c.timestamp.day) == todayDate);
-    final loggedYesterday = practiceCheckIns.any((c) =>
-        DateTime(c.timestamp.year, c.timestamp.month, c.timestamp.day) == yesterdayDate);
-
-    if (!loggedToday && !loggedYesterday) {
-      return 0; // Broken streak
-    }
-
-    int streak = loggedToday ? 1 : 0;
-    DateTime checkDate = yesterdayDate;
-
-    while (true) {
-      final loggedOnDay = practiceCheckIns.any((c) =>
-          DateTime(c.timestamp.year, c.timestamp.month, c.timestamp.day) == checkDate);
-      if (loggedOnDay) {
-        streak++;
-        checkDate = checkDate.subtract(const Duration(days: 1));
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  }
 
   String _getNudgeMessage(Practice practice, int streak) {
     if (streak >= 14) {

@@ -8,6 +8,8 @@ import 'package:phantom/providers/goal_provider.dart';
 import 'package:phantom/providers/practice_provider.dart';
 import 'package:phantom/utils/constants.dart';
 import 'package:phantom/theme/app_theme.dart';
+import 'package:phantom/models/celebration_event.dart';
+import 'package:phantom/services/celebration_controller.dart';
 
 /// A bottom sheet for logging a check-in against a practice.
 class CheckInSheet extends StatefulWidget {
@@ -100,9 +102,24 @@ class _CheckInSheetState extends State<CheckInSheet> {
     );
 
     final checkInProvider = Provider.of<CheckInProvider>(context, listen: false);
-    await checkInProvider.addCheckIn(checkIn);
+    final result = await checkInProvider.addCheckIn(checkIn);
 
     if (mounted) {
+      if (result.isStreakMilestone) {
+        final practiceProvider = Provider.of<PracticeProvider>(context, listen: false);
+        final practice = practiceProvider.getById(_selectedPracticeId!);
+        final practiceTitle = practice?.title ?? 'Practice';
+
+        CelebrationController.instance.enqueue([
+          CelebrationEvent(
+            type: CelebrationType.streakMilestone,
+            title: '🔥 ${result.streak}-Day Streak!',
+            subtitle: practiceTitle,
+            dedupeKey: 'streak:${checkIn.practiceId}:${result.streak}',
+          ),
+        ]);
+      }
+
       setState(() {
         _isSuccess = true;
       });

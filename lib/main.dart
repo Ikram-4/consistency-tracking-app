@@ -17,6 +17,7 @@ import 'package:phantom/providers/stats_provider.dart';
 import 'package:phantom/providers/weekly_review_provider.dart';
 import 'package:phantom/providers/settings_provider.dart';
 import 'package:phantom/services/notification_service.dart';
+import 'package:phantom/services/widget_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,18 @@ void main() async {
     await notificationService.reschedule();
   } catch (e) {
     debugPrint('Notification service initialization failed: $e');
+  }
+
+  // Initialize widget service and perform initial update
+  try {
+    WidgetService.instance.initialize(
+      goalRepo: goalRepo,
+      practiceRepo: practiceRepo,
+      checkInRepo: checkInRepo,
+    );
+    await WidgetService.instance.updateWidget();
+  } catch (e) {
+    debugPrint('WidgetService initialization failed: $e');
   }
 
   runApp(

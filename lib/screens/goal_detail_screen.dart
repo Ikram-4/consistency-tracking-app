@@ -11,6 +11,10 @@ import 'package:phantom/screens/check_in_screen.dart';
 import 'package:phantom/widgets/practice_tile.dart';
 import 'package:phantom/utils/date_helpers.dart';
 import 'package:phantom/theme/app_theme.dart';
+import 'package:phantom/models/celebration_event.dart';
+import 'package:phantom/services/celebration_controller.dart';
+import 'package:phantom/repositories/habit_repository.dart';
+import 'package:phantom/models/progress_shaping.dart';
 
 /// Detailed view of a goal showing its status, milestones, and practices.
 class GoalDetailScreen extends StatelessWidget {
@@ -181,12 +185,22 @@ class GoalDetailScreen extends StatelessWidget {
           checkIns: checkIns,
         );
 
+        final habitRepo = HabitRepository(
+          checkIns: checkIns,
+          profileLookup: (id) => goal.profile,
+        );
+        final state = habitRepo.currentState(goalId);
+        final habitGoal = (goal.targetCount ?? 100).toDouble();
+        final rawFraction = state.progress / habitGoal;
+        // displayFraction is cosmetic only; core math must keep using rawFraction / state.progress.
+        final displayFraction = shapeProgress(rawFraction);
+
         // Progress Details
         final double displayProgress;
         final InlineSpan progressSpan;
         switch (goal.progressType) {
           case ProgressType.milestone:
-            displayProgress = goal.progressPercent;
+            displayProgress = displayFraction;
             progressSpan = TextSpan(
               children: [
                 TextSpan(
@@ -216,7 +230,7 @@ class GoalDetailScreen extends StatelessWidget {
             break;
           case ProgressType.count:
             final count = goal.targetCount ?? 1;
-            displayProgress = (totalCheckIns / count).clamp(0.0, 1.0);
+            displayProgress = displayFraction;
             progressSpan = TextSpan(
               children: [
                 TextSpan(
@@ -245,7 +259,7 @@ class GoalDetailScreen extends StatelessWidget {
             );
             break;
           case ProgressType.timeElapsed:
-            displayProgress = goal.progressPercent;
+            displayProgress = displayFraction;
             progressSpan = TextSpan(
               children: [
                 TextSpan(
@@ -405,6 +419,34 @@ class GoalDetailScreen extends StatelessWidget {
                                 ),
                               ),
                       ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          _buildStatBadge(
+                            context: context,
+                            icon: Icons.local_fire_department,
+                            iconColor: AppTheme.behind,
+                            label: 'Streak',
+                            value: '${state.streakDays} days',
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatBadge(
+                            context: context,
+                            icon: Icons.psychology,
+                            iconColor: theme.colorScheme.primary,
+                            label: 'Focus',
+                            value: state.focus.toStringAsFixed(1),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatBadge(
+                            context: context,
+                            icon: Icons.tune,
+                            iconColor: theme.colorScheme.secondary,
+                            label: 'Style',
+                            value: goal.profile.name[0].toUpperCase() + goal.profile.name.substring(1),
+                          ),
+                        ],
+                      ),
                       if (goal.whyStatement != null && goal.whyStatement!.isNotEmpty) ...[
                         const Divider(height: 24),
                         Text(
@@ -470,6 +512,57 @@ class GoalDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // ── PROJECTED COMPLETION ──
+              Builder(builder: (context) {
+                // Compute projected completion date inline using the
+                // check-ins already loaded above — no extra providers needed.
+                final habitRepo = HabitRepository(
+                  checkIns: checkIns,
+                  profileLookup: (id) => goal.profile,
+                );
+                final habitGoal = (goal.targetCount ?? 100).toDouble();
+                final result =
+                    habitRepo.projectedCompletionDay(goalId, habitGoal);
+                final projectedDay = result.projectedDay;
+
+                final String projectedLabel;
+                if (projectedDay == null) {
+                  projectedLabel = 'Not enough data yet';
+                } else {
+                  final today = DateTime.now();
+                  final daysFromNow = projectedDay -
+                      habitRepo.currentState(goalId).day;
+                  final projectedDate =
+                      today.add(Duration(days: daysFromNow));
+                  final y = projectedDate.year.toString().padLeft(4, '0');
+                  final m = projectedDate.month.toString().padLeft(2, '0');
+                  final d = projectedDate.day.toString().padLeft(2, '0');
+                  projectedLabel = '$y-$m-$d (Confidence: ${result.label})';
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Projected: ',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        projectedLabel,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 24),
 
               // ── MILESTONES SECTION ──
@@ -504,8 +597,27 @@ class GoalDetailScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final ms = goal.milestones[index];
                       return ListTile(
-                        onTap: () {
-                          goalProvider.toggleMilestone(goal.id, ms.id);
+                        onTap: () async {
+                          final result = await goalProvider.toggleMilestone(goal.id, ms.id);
+                          if (result != null && result.wasCompleted) {
+                            final events = <CelebrationEvent>[];
+                            if (result.isGoalComplete) {
+                              events.add(CelebrationEvent(
+                                type: CelebrationType.goalComplete,
+                                title: '🏆 Goal Complete!',
+                                subtitle: 'All ${result.totalCount} milestones done',
+                                dedupeKey: 'goal-complete:${goal.id}',
+                              ));
+                            } else {
+                              events.add(CelebrationEvent(
+                                type: CelebrationType.singleMilestone,
+                                title: 'Milestone Complete!',
+                                subtitle: '${result.completedCount} of ${result.totalCount} milestones',
+                                dedupeKey: 'milestone:${goal.id}:${ms.id}',
+                              ));
+                            }
+                            CelebrationController.instance.enqueue(events);
+                          }
                         },
                         leading: Container(
                           width: 20,
@@ -620,6 +732,63 @@ class GoalDetailScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatBadge({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+  }) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: theme.colorScheme.outline.withOpacity(0.2),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: iconColor),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.dataWhite,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

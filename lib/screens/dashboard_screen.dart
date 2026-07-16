@@ -13,6 +13,7 @@ import 'package:phantom/screens/goal_form_screen.dart';
 import 'package:phantom/theme/app_theme.dart';
 import 'package:phantom/utils/date_helpers.dart';
 import 'package:phantom/screens/settings_screen.dart';
+import 'package:phantom/utils/pace_calculator.dart';
 
 /// Standing Dashboard screen displaying a professional overview of the user's progress.
 class DashboardScreen extends StatelessWidget {
@@ -60,8 +61,16 @@ class DashboardScreen extends StatelessWidget {
             );
           }
 
-          // Compute global summary statistics
-          int totalOnTrack = 0;
+          // Compute global summary statistics using the shared PaceCalculator
+          final summary = PaceCalculator.calculateStandings(
+            activeGoals: activeGoals,
+            activePractices: practiceProvider.practices,
+            checkIns: checkInProvider.checkIns,
+            now: DateTime.now(),
+            getGoalById: (id) => goalProvider.getById(id),
+          );
+
+          int totalOnTrack = summary.onTrackCount;
           int totalBehind = 0;
           int totalFallingOff = 0;
           int checkInsLast14Days = 0;
@@ -91,16 +100,10 @@ class DashboardScreen extends StatelessWidget {
               pace: pace,
             ));
 
-            switch (pace.status) {
-              case TrackingStatus.onTrack:
-                totalOnTrack++;
-                break;
-              case TrackingStatus.behind:
-                totalBehind++;
-                break;
-              case TrackingStatus.fallingOff:
-                totalFallingOff++;
-                break;
+            if (pace.status == TrackingStatus.behind) {
+              totalBehind++;
+            } else if (pace.status == TrackingStatus.fallingOff) {
+              totalFallingOff++;
             }
           }
 
